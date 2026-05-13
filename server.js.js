@@ -94,6 +94,13 @@ app.post('/api/online', (req, res) => {
 app.get('/api/online', (req, res) => {
   res.json({ online: Array.from(onlineUsers) });
 });
+// Добавьте ЭТОТ код перед app.listen
+const path = require('path');
+
+// Отдаём index.html при заходе на главную страницу
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
 
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Server running!`);
