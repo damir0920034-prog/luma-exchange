@@ -1,12 +1,12 @@
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 
-// База данных (хранится в памяти сервера)
 let users = [];
 let items = [];
 let chats = [];
@@ -94,27 +94,13 @@ app.post('/api/online', (req, res) => {
 app.get('/api/online', (req, res) => {
   res.json({ online: Array.from(onlineUsers) });
 });
-// Добавьте ЭТОТ код перед app.listen
-const path = require('path');
 
-// Отдаём index.html при заходе на главную страницу
+// ========== ГЛАВНОЕ: отдаём index.html ==========
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
+// =================================================
 
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`🚀 Server running!`);
-  console.log(`📍 Доступно по адресам:`);
-  console.log(`   http://localhost:${PORT}`);
-  
-  // Получаем локальный IP
-  const os = require('os');
-  const network = os.networkInterfaces();
-  for (const name of Object.keys(network)) {
-    for (const net of network[name]) {
-      if (net.family === 'IPv4' && !net.internal) {
-        console.log(`   http://${net.address}:${PORT} (для других устройств в сети)`);
-      }
-    }
-  }
+  console.log(`🚀 Server running on port ${PORT}`);
 });
