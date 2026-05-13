@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LUMA Exchange — LT2 Trading</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box;}
+    body{background:#0c0f1c;font-family:system-ui;padding-bottom:90px;color:#eef2ff;}
+    .header{position:sticky;top:0;background:rgba(12,15,28,0.95);backdrop-filter:blur(12px);padding:12px 20px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(255,130,0,0.3);}
+    .logo h1{font-size:1.4rem;background:linear-gradient(135deg,#ff8200,#edff00);-webkit-background-clip:text;background-clip:text;color:transparent;}
+    .auth-buttons{display:flex;gap:10px;}
+    .auth-btn{background:rgba(255,130,0,0.2);border:1px solid #ff8200;padding:8px 16px;border-radius:40px;color:white;cursor:pointer;}
+    .user-info{display:flex;align-items:center;gap:10px;background:rgba(237,255,0,0.1);padding:5px 15px 5px 8px;border-radius:50px;}
+    .user-avatar{width:36px;height:36px;border-radius:50%;object-fit:cover;border:2px solid #edff00;}
+    .logout-btn{background:none;border:none;color:#ff8200;cursor:pointer;font-size:1.2rem;}
+    .main-container{max-width:1400px;margin:0 auto;padding:20px 16px;}
+    .tabs{display:flex;gap:10px;margin-bottom:24px;border-bottom:1px solid #2a2f3f;padding-bottom:10px;}
+    .tab-btn{background:none;border:none;color:#94a3b8;padding:10px 24px;cursor:pointer;border-radius:40px;}
+    .tab-btn.active{background:#ff8200;color:#0c0f1c;}
+    .tab-content{display:none;}
+    .tab-content.active{display:block;}
+    .items-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:22px;}
+    .item-card{background:#141a2b;border-radius:28px;overflow:hidden;border:1px solid rgba(255,130,0,0.25);}
+    .item-img{width:100%;aspect-ratio:1/1;object-fit:cover;}
+    .item-info{padding:14px 16px 18px;}
+    .item-title{font-size:1.2rem;font-weight:700;}
+    .item-price{font-size:1.3rem;font-weight:800;color:#edff00;margin:8px 0;}
+    .item-desc{font-size:0.85rem;color:#b9c3e0;margin-bottom:12px;}
+    .item-seller{font-size:0.75rem;color:#ff8200;display:flex;align-items:center;gap:8px;}
+    .delete-btn{background:rgba(255,60,60,0.2);border:none;color:#ff8a8a;padding:8px;border-radius:40px;width:100%;cursor:pointer;}
+    .chat-btn{background:rgba(237,255,0,0.15);border:1px solid #edff00;color:#edff00;padding:8px;border-radius:40px;width:100%;cursor:pointer;}
+    .floating-add{position:fixed;bottom:24px;right:24px;width:64px;height:64px;background:#ff8200;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:20;box-shadow:0 4px 15px rgba(0,0,0,0.4);}
+    .floating-add span{font-size:2.8rem;color:#0c0f1c;}
+    .modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);align-items:center;justify-content:center;z-index:1000;}
+    .modal-content{background:#111827;width:90%;max-width:500px;border-radius:36px;padding:28px 24px;border:1px solid #ff8200;}
+    .modal-content h3{color:#ff8200;text-align:center;margin-bottom:20px;}
+    .modal-content input,.modal-content textarea{width:100%;padding:14px;margin:8px 0;background:#1e293b;border:1px solid #334155;border-radius:28px;color:white;}
+    .btn-primary{background:#ff8200;border:none;padding:14px;border-radius:40px;font-weight:bold;cursor:pointer;}
+    .btn-secondary{background:#334155;border:none;padding:14px;border-radius:40px;cursor:pointer;color:white;}
+    .image-upload-label{background:#2d3a5e;padding:12px;border-radius:40px;text-align:center;cursor:pointer;margin:8px 0;}
+    .error-msg{color:#ff6b6b;font-size:0.8rem;text-align:center;margin-top:10px;}
+    .switch-auth{text-align:center;margin-top:20px;color:#94a3b8;}
+    .switch-auth span{color:#ff8200;cursor:pointer;}
+    .chat-modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.9);align-items:center;justify-content:center;z-index:1001;}
+    .chat-modal-content{background:#111827;width:90%;max-width:500px;height:80%;border-radius:36px;display:flex;flex-direction:column;border:1px solid #ff8200;}
+    .chat-modal-header{padding:16px;background:#ff8200;border-radius:36px 36px 0 0;display:flex;justify-content:space-between;color:#0c0f1c;font-weight:bold;}
+    .close-chat{background:none;border:none;font-size:1.5rem;cursor:pointer;}
+    .chat-messages-list{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px;}
+    .chat-bubble{max-width:80%;padding:10px 14px;border-radius:20px;}
+    .chat-bubble.sent{background:#ff8200;color:#0c0f1c;align-self:flex-end;}
+    .chat-bubble.received{background:#1e293b;color:white;align-self:flex-start;}
+    .chat-input-area{display:flex;padding:12px;gap:8px;border-top:1px solid #2a2f3f;}
+    .chat-input-area input{flex:1;padding:12px;border-radius:40px;border:none;background:#1e293b;color:white;}
+    .chat-input-area button{background:#ff8200;border:none;padding:12px 20px;border-radius:40px;cursor:pointer;}
+    .online-dot{width:8px;height:8px;background:#22c55e;border-radius:50%;display:inline-block;margin-left:5px;}
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo"><h1>LUMA<span style="color:#edff00;">X</span></h1><p>LT2 Trading</p></div>
+  <div id="authSection"><div class="auth-buttons"><button class="auth-btn" id="loginBtn">Login</button><button class="auth-btn" id="registerBtn">Register</button></div></div>
+  <div id="userInfoSection" style="display:none;" class="user-info"><img class="user-avatar" id="currentUserAvatar" src=""><span id="currentUserName"></span><button class="logout-btn" id="logoutBtn">🚪</button></div>
+</div>
+
+<div class="main-container">
+  <div class="tabs" id="tabsContainer" style="display:none;"><button class="tab-btn active" data-tab="market">Marketplace</button><button class="tab-btn" data-tab="my">My Listings</button></div>
+  <div id="marketTab" class="tab-content active"><div class="items-grid" id="marketGrid"></div><div id="marketEmpty" class="empty-state" style="display:none;">📭 Loading...</div></div>
+  <div id="myTab" class="tab-content"><div class="items-grid" id="myGrid"></div><div id="myEmpty" class="empty-state" style="display:none;">✨ No items yet. Tap +</div></div>
+</div>
+
+<div class="floating-add" id="openAddModal" style="display:none;"><span>+</span></div>
+
+<div id="registerModal" class="modal"><div class="modal-content"><h3>📝 Register</h3><input type="text" id="regUsername" placeholder="Username"><input type="password" id="regPassword" placeholder="Password"><div class="image-upload-label" id="regUploadLabel">🖼️ Avatar</div><input type="file" id="regAvatarInput" accept="image/*" style="display:none;"><div id="regAvatarPreview" style="text-align:center;margin:10px 0;"></div><div id="regError" class="error-msg"></div><button class="btn-primary" id="doRegisterBtn">Create Account</button><div class="switch-auth">Already have an account? <span id="switchToLogin">Login</span></div></div></div>
+
+<div id="loginModal" class="modal"><div class="modal-content"><h3>🔐 Login</h3><input type="text" id="loginUsername" placeholder="Username"><input type="password" id="loginPassword" placeholder="Password"><div id="loginError" class="error-msg"></div><button class="btn-primary" id="doLoginBtn">Login</button><div class="switch-auth">No account? <span id="switchToRegister">Register</span></div></div></div>
+
+<div id="addItemModal" class="modal"><div class="modal-content"><h3>📦 New Listing</h3><input type="text" id="itemName" placeholder="Item name"><input type="number" id="itemPrice" placeholder="Price"><textarea id="itemDesc" placeholder="Description" rows="3"></textarea><div class="image-upload-label" id="uploadLabel">📷 Photo</div><input type="file" id="itemImageInput" accept="image/*" style="display:none;"><div class="modal-buttons" style="display:flex;gap:12px;margin-top:16px;"><button class="btn-primary" id="saveItemBtn">Publish</button><button class="btn-secondary" id="closeAddModal">Cancel</button></div></div></div>
+
+<div id="chatModal" class="chat-modal"><div class="chat-modal-content"><div class="chat-modal-header"><span id="chatTitle">💬 Chat</span><button class="close-chat" id="closeChatBtn">✖</button></div><div class="chat-messages-list" id="chatMessagesList"></div><div class="chat-input-area"><input type="text" id="chatInput" placeholder="Message..."><button id="sendChatBtn">Send</button></div></div></div>
+
+<script>
+const API_URL = window.location.origin.replace(/:\d+$/, ':3000') + '/api';
+let currentUser = null;
+let allItems = [];
+let activeChat = null;
+let onlineUsers = new Set();
+
+async function apiCall(endpoint, options = {}) {
+  const res = await fetch(API_URL + endpoint, {
+    headers: { 'Content-Type': 'application/json' },
+    ...options
+  });
+  return res.json();
+}
+
+async function loadItems() {
+  const data = await apiCall('/items');
+  if (data) allItems = data;
+  renderMarketplace();
+  renderMyItems();
+}
+
+async function register(username, password, avatar) {
+  const data = await apiCall('/register', { method: 'POST', body: JSON.stringify({ username, password, avatar }) });
+  if (data.success) return data.user;
+  throw new Error(data.error);
+}
+
+async function login(username, password) {
+  const data = await apiCall('/login', { method: 'POST', body: JSON.stringify({ username, password }) });
+  if (data.success) return data.user;
+  throw new Error(data.error);
+}
+
+async function createItem(item) {
+  const data = await apiCall('/items', { method: 'POST', body: JSON.stringify(item) });
+  if (data) loadItems();
+}
+
+async function deleteItem(itemId, userId) {
+  await fetch(API_URL + '/items/' + itemId, { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId }) });
+  loadItems();
+}
+
+async function updateOnline(isOnline) {
+  if (!currentUser) return;
+  await apiCall('/online', { method: 'POST', body: JSON.stringify({ userId: currentUser.id, isOnline }) });
+}
+
+async function loadOnlineUsers() {
+  const data = await apiCall('/online');
+  if (data && data.online) onlineUsers = new Set(data.online);
+  renderMarketplace();
+  renderMyItems();
+}
+
+function isUserOnline(userId) { return onlineUsers.has(userId); }
+
+function renderMarketplace() {
+  const grid = document.getElementById('marketGrid'), empty = document.getElementById('marketEmpty');
+  if (!currentUser) return;
+  const publicItems = allItems.filter(i => i.sellerId !== currentUser.id);
+  if (publicItems.length === 0) { grid.innerHTML = ''; empty.style.display = 'block'; empty.innerText = '📭 No listings'; return; }
+  empty.style.display = 'none'; grid.innerHTML = '';
+  publicItems.forEach(item => grid.appendChild(createCard(item, false)));
+}
+
+function renderMyItems() {
+  const grid = document.getElementById('myGrid'), empty = document.getElementById('myEmpty');
+  if (!currentUser) return;
+  const myItems = allItems.filter(i => i.sellerId === currentUser.id);
+  if (myItems.length === 0) { grid.innerHTML = ''; empty.style.display = 'block'; return; }
+  empty.style.display = 'none'; grid.innerHTML = '';
+  myItems.forEach(item => grid.appendChild(createCard(item, true)));
+}
+
+function createCard(item, canDelete) {
+  const card = document.createElement('div'); card.className = 'item-card';
+  const img = item.image || 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"%3E%3Crect width="24" height="24" fill="%231a1e2c"/%3E%3Ctext x="6" y="16" fill="%23ff8200" font-size="12"%3E📦%3C/text%3E%3C/svg%3E';
+  const isOnline = isUserOnline(item.sellerId);
+  card.innerHTML = `<img class="item-img" src="${img}"><div class="item-info"><div class="item-title">${escapeHtml(item.name)}</div><div class="item-price">${item.price} 💰</div><div class="item-desc">${escapeHtml(item.desc || '')}</div><div class="item-seller">${item.sellerAvatar ? `<img src="${item.sellerAvatar}" style="width:24px;height:24px;border-radius:50%;">` : '👤'} ${escapeHtml(item.sellerName)} ${isOnline ? '<span class="online-dot"></span>' : ''}</div>${!canDelete ? '<button class="chat-btn">💬 Chat</button>' : '<button class="delete-btn">✖ Delete</button>'}</div>`;
+  if (!canDelete) card.querySelector('.chat-btn').onclick = () => openChat(item);
+  else card.querySelector('.delete-btn').onclick = () => { if(confirm('Delete?')) deleteItem(item.id, currentUser.id); };
+  return card;
+}
+
+function openChat(item) {
+  if (item.sellerId === currentUser.id) { alert('Your own item'); return; }
+  activeChat = item;
+  document.getElementById('chatTitle').innerHTML = `💬 ${item.sellerName} - ${item.name}`;
+  document.getElementById('chatModal').style.display = 'flex';
+}
+
+function escapeHtml(s) { if(!s) return ''; return s.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'})[m]); }
+
+function updateUI() {
+  const authSec = document.getElementById('authSection'), userSec = document.getElementById('userInfoSection'), tabs = document.getElementById('tabsContainer'), addBtn = document.getElementById('openAddModal');
+  if (currentUser) {
+    authSec.style.display = 'none'; userSec.style.display = 'flex'; tabs.style.display = 'flex'; addBtn.style.display = 'flex';
+    document.getElementById('currentUserName').innerText = currentUser.username;
+    document.getElementById('currentUserAvatar').src = currentUser.avatar || 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"%3E%3Cpath fill="%23ff8200" d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4z"/%3E%3C/svg%3E';
+    loadItems(); loadOnlineUsers(); updateOnline(true);
+    setInterval(() => updateOnline(true), 30000);
+  } else { authSec.style.display = 'block'; userSec.style.display = 'none'; tabs.style.display = 'none'; addBtn.style.display = 'none'; }
+}
+
+let tempAvatar='';
+document.getElementById('registerBtn').onclick=()=>document.getElementById('registerModal').style.display='flex';
+document.getElementById('loginBtn').onclick=()=>document.getElementById('loginModal').style.display='flex';
+document.getElementById('switchToLogin').onclick=()=>{document.getElementById('registerModal').style.display='none';document.getElementById('loginModal').style.display='flex';};
+document.getElementById('switchToRegister').onclick=()=>{document.getElementById('loginModal').style.display='none';document.getElementById('registerModal').style.display='flex';};
+document.getElementById('regUploadLabel').onclick=()=>document.getElementById('regAvatarInput').click();
+document.getElementById('regAvatarInput').onchange=(e)=>{const f=e.target.files[0]; if(f){const r=new FileReader(); r.onload=(ev)=>{tempAvatar=ev.target.result; document.getElementById('regAvatarPreview').innerHTML=`<img src="${tempAvatar}" style="width:60px;height:60px;border-radius:50%;">`;}; r.readAsDataURL(f);}};
+document.getElementById('doRegisterBtn').onclick=async()=>{const u=document.getElementById('regUsername').value.trim(), p=document.getElementById('regPassword').value; try{const user=await register(u,p,tempAvatar); alert('Registered! Please login'); document.getElementById('registerModal').style.display='none'; document.getElementById('loginModal').style.display='flex';}catch(e){document.getElementById('regError').innerText=e.message;}};
+document.getElementById('doLoginBtn').onclick=async()=>{const u=document.getElementById('loginUsername').value.trim(), p=document.getElementById('loginPassword').value; try{const user=await login(u,p); currentUser=user; localStorage.setItem('luma_session',JSON.stringify(user)); updateUI(); document.getElementById('loginModal').style.display='none';}catch(e){document.getElementById('loginError').innerText=e.message;}};
+document.getElementById('logoutBtn').onclick=()=>{updateOnline(false); currentUser=null; localStorage.removeItem('luma_session'); updateUI();};
+
+let newImg='';
+document.getElementById('openAddModal').onclick=()=>{document.getElementById('addItemModal').style.display='flex'; document.getElementById('itemName').value=''; document.getElementById('itemPrice').value=''; document.getElementById('itemDesc').value=''; newImg='';};
+document.getElementById('closeAddModal').onclick=()=>document.getElementById('addItemModal').style.display='none';
+document.getElementById('uploadLabel').onclick=()=>document.getElementById('itemImageInput').click();
+document.getElementById('itemImageInput').onchange=(e)=>{const f=e.target.files[0]; if(f){const r=new FileReader(); r.onload=(ev)=>{newImg=ev.target.result;}; r.readAsDataURL(f);}};
+document.getElementById('saveItemBtn').onclick=async()=>{const n=document.getElementById('itemName').value.trim(), p=parseInt(document.getElementById('itemPrice').value), d=document.getElementById('itemDesc').value.trim(); if(!n){alert('Enter name');return;} if(!p||p<=0){alert('Enter price');return;} await createItem({sellerId:currentUser.id, sellerName:currentUser.username, sellerAvatar:currentUser.avatar, name:n, price:p, desc:d, image:newImg}); document.getElementById('addItemModal').style.display='none';};
+
+document.querySelectorAll('.tab-btn').forEach(btn=>{btn.onclick=()=>{document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active')); document.getElementById(btn.dataset.tab+'Tab').classList.add('active'); if(btn.dataset.tab==='market') renderMarketplace(); else renderMyItems();};});
+
+document.getElementById('closeChatBtn').onclick=()=>{document.getElementById('chatModal').style.display='none'; activeChat=null;};
+window.onclick=(e)=>{if(e.target===document.getElementById('addItemModal')) document.getElementById('addItemModal').style.display='none'; if(e.target===document.getElementById('loginModal')) document.getElementById('loginModal').style.display='none'; if(e.target===document.getElementById('registerModal')) document.getElementById('registerModal').style.display='none'; if(e.target===document.getElementById('chatModal')){document.getElementById('chatModal').style.display='none'; activeChat=null;}};
+
+const session = localStorage.getItem('luma_session');
+if (session) { currentUser = JSON.parse(session); updateUI(); } else updateUI();
+</script>
+</body>
+</html>
